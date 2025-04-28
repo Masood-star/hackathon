@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Advanced Aptitude Test</title>
+  <style>
+    :root {
+      --primary-color: #00b894;
+      --secondary-color: #0984e3;
+      --accent-color: #6c5ce7;
+      --text-color: #2d3436;
+      --light-bg: #f5f6fa;
+      --option-hover: #81ecec;
+      --correct-answer: #00b894;
+      --wrong-answer: #d63031;
+      --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      text-align: center;
+      padding: 20px;
+      min-height: 100vh;
+      color: var(--text-color);
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 30px;
+      background: white;
+      border-radius: 15px;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 5px;
+      background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+    }
+    
+    h1 {
+      color: var(--primary-color);
+      margin-bottom: 15px;
+      position: relative;
+      display: inline-block;
+    }
+    
+    h1::after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 50px;
+      height: 3px;
+      background: var(--accent-color);
+    }
+    
+    .btn {
+      padding: 15px 30px;
+      border: none;
+      background: var(--primary-color);
+      color: white;
+      cursor: pointer;
+      font-size: 18px;
+      transition: var(--transition);
+      border-radius: 10px;
+      box-shadow: var(--shadow);
+      margin: 10px;
+      font-weight: 600;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .btn::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 5px;
+      height: 5px;
+      background: rgba(255, 255, 255, 0.5);
+      opacity: 0;
+      border-radius: 100%;
+      transform: scale(1, 1) translate(-50%);
+      transform-origin: 50% 50%;
+    }
+    
+    .btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 20px rgba(0, 184, 148, 0.3);
+    }
+    
+    .btn:focus:not(:active)::after {
+      animation: ripple 1s ease-out;
+    }
+    
+    @keyframes ripple {
+      0% {
+        transform: scale(0, 0);
+        opacity: 0.5;
+      }
+      100% {
+        transform: scale(20, 20);
+        opacity: 0;
+      }
+    }
+    
+    .hidden {
+      display: none;
+    }
+    
+    #testContainer {
+      margin-top: 30px;
+      animation: fadeIn 0.5s ease-out forwards;
+    }
+    
+    #questionBox {
+      font-size: 22px;
+      margin-bottom: 30px;
+      font-weight: 600;
+      color: var(--secondary-color);
+      line-height: 1.4;
+    }
+    
+    .options-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+    
+    .option {
+      padding: 15px;
+      background-color: var(--light-bg);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: var(--transition);
+      border: 2px solid transparent;
+      font-size: 16px;
+      text-align: center;
+      min-height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .option:hover {
+      background-color: var(--option-hover);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
+    }
+    
+    .option.selected {
+      border-color: var(--secondary-color);
+      background-color: #e3f2fd;
+    }
+    
+    .option.correct {
+      background-color: var(--correct-answer);
+      color: white;
+      animation: pulse 0.5s;
+    }
+    
+    .option.wrong {
+      background-color: var(--wrong-answer);
+      color: white;
+    }
+    
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+    
+    #progressBar {
+      height: 10px;
+      background-color: #dfe6e9;
+      border-radius: 5px;
+      margin-bottom: 30px;
+      overflow: hidden;
+    }
+    
+    #progress {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+      width: 0%;
+      transition: width 0.5s ease;
+    }
+    
+    #progressText {
+      margin-bottom: 20px;
+      font-weight: 600;
+      color: var(--secondary-color);
+      display: flex;
+      justify-content: space-between;
+    }
+    
+    #resultBox {
+      margin-top: 30px;
+      padding: 20px;
+      border-radius: 10px;
+      background-color: var(--light-bg);
+      animation: fadeIn 0.5s ease-out;
+    }
+    
+    #score {
+      font-size: 28px;
+      font-weight: bold;
+      color: var(--primary-color);
+      margin: 10px 0;
+    }
+    
+    #timer {
+      font-size: 18px;
+      font-weight: bold;
+      color: var(--accent-color);
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .time-container {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .feedback {
+      margin-top: 15px;
+      padding: 15px;
+      border-radius: 5px;
+      font-weight: 500;
+      line-height: 1.5;
+    }
+    
+    .correct-feedback {
+      background-color: rgba(0, 184, 148, 0.1);
+      color: var(--correct-answer);
+      border-left: 4px solid var(--correct-answer);
+    }
+    
+    .wrong-feedback {
+      background-color: rgba(214, 48, 49, 0.1);
+      color: var(--wrong-answer);
+      border-left: 4px solid var(--wrong-answer);
+    }
+    
+    .stats {
+      display: flex;
+      justify-content: space-around;
+      margin: 20px 0;
+      flex-wrap: wrap;
+    }
+    
+    .stat-box {
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: var(--shadow);
+      min-width: 120px;
+      margin: 10px;
+    }
+    
+    .stat-value {
+      font-size: 24px;
+      font-weight: bold;
+      color: var(--accent-color);
+      margin: 5px 0;
+    }
+    
+    .stat-label {
+      font-size: 14px;
+      color: var(--text-color);
+      opacity: 0.8;
+    }
+    
+    .confetti {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background-color: var(--accent-color);
+      opacity: 0;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @media (max-width: 600px) {
+      .options-container {
+        grid-template-columns: 1fr;
+      }
+      
+      .container {
+        padding: 20px;
+      }
+      
+      .stats {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Advanced Aptitude Test</h1>
+    <p>Test your logical reasoning and problem-solving skills with this comprehensive aptitude test.</p>
+    
+    <button id="startTestBtn" class="btn">Start Test</button>
+    
+    <div id="testContainer" class="hidden">
+      <div id="timer">
+        <div class="time-container">
+          <span>⏱ Time:</span>
+          <span id="timeDisplay">00:00</span>
+        </div>
+        <div class="time-container">
+          <span>🏆 Score:</span>
+          <span id="currentScore">0</span>
+        </div>
+      </div>
+      <div id="progressBar">
+        <div id="progress"></div>
+      </div>
+      <div id="progressText">
+        <span>Question <span id="currentQuestion">1</span> of <span id="totalQuestions">7</span></span>
+        <span id="questionTimer">00:00</span>
+      </div>
+      
+      <div id="questionBox"></div>
+      <div class="options-container" id="optionsBox"></div>
+      <div id="feedback" class="feedback"></div>
+      <button id="submitBtn" class="btn">Submit Answer</button>
+      <div id="resultBox" class="hidden">
+        <h2>Test Completed!</h2>
+        <div class="stats">
+          <div class="stat-box">
+            <div class="stat-value" id="finalScore">0</div>
+            <div class="stat-label">Correct Answers</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-value" id="percentage">0%</div>
+            <div class="stat-label">Percentage</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-value" id="timeTaken">0:00</div>
+            <div class="stat-label">Time Taken</div>
+          </div>
+        </div>
+        <div id="resultMessage"></div>
+        <div id="detailedResults"></div>
+        <button id="restartBtn" class="btn">Take Test Again</button>
+        <button id="reviewBtn" class="btn" style="background-color: var(--accent-color);">Review Answers</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // DOM elements
+    const startBtn = document.getElementById("startTestBtn");
+    const testContainer = document.getElementById("testContainer");
+    const questionBox = document.getElementById("questionBox");
+    const optionsBox = document.getElementById("optionsBox");
+    const resultBox = document.getElementById("resultBox");
+    const submitBtn = document.getElementById("submitBtn");
+    const restartBtn = document.getElementById("restartBtn");
+    const reviewBtn = document.getElementById("reviewBtn");
+    const progressBar = document.getElementById("progress");
+    const progressText = document.getElementById("progressText");
+    const currentScoreDisplay = document.getElementById("currentScore");
+    const finalScoreDisplay = document.getElementById("finalScore");
+    const percentageDisplay = document.getElementById("percentage");
+    const timeTakenDisplay = document.getElementById("timeTaken");
+    const resultMessage = document.getElementById("resultMessage");
+    const detailedResults = document.getElementById("detailedResults");
+    const timeDisplay = document.getElementById("timeDisplay");
+    const questionTimerDisplay = document.getElementById("questionTimer");
+    const currentQuestionDisplay = document.getElementById("currentQuestion");
+    const totalQuestionsDisplay = document.getElementById("totalQuestions");
+    const feedbackDisplay = document.getElementById("feedback");
+
+    // Test variables
+    let currentQuestion = 0;
+    let score = 0;
+    let selectedAnswer = null;
+    let startTime;
+    let questionStartTime;
+    let testTimerInterval;
+    let questionTimerInterval;
+    let userAnswers = [];
+    let questionTimes = [];
+    let testCompleted = false;
+
+    const questions = [
+      {
+        question: "What comes next in the sequence: 2, 4, 8, 16, ?",
+        options: ["20", "32", "18", "24"],
+        answer: "32",
+        explanation: "This is a geometric sequence where each number is multiplied by 2 (2×2=4, 4×2=8, 8×2=16, 16×2=32).",
+        category: "Numerical Reasoning"
+      },
+      {
+        question: "If A=1, B=2, ..., what is the value of 'DOG'?",
+        options: ["26", "27", "30", "26"],
+        answer: "26",
+        explanation: "D=4, O=15, G=7. 4 + 15 + 7 = 26.",
+        category: "Letter Values"
+      },
+      {
+        question: "Which number is a prime number?",
+        options: ["4", "6", "9", "11"],
+        answer: "11",
+        explanation: "A prime number is only divisible by 1 and itself. 11 is the only option that meets this criteria.",
+        category: "Number Theory"
+      },
+      {
+        question: "What is the missing number: 3, 6, 9, __, 15?",
+        options: ["11", "12", "10", "13"],
+        answer: "12",
+        explanation: "This is an arithmetic sequence adding 3 each time (3+3=6, 6+3=9, 9+3=12, 12+3=15).",
+        category: "Numerical Sequences"
+      },
+      {
+        question: "Which shape has 6 sides?",
+        options: ["Hexagon", "Triangle", "Octagon", "Pentagon"],
+        answer: "Hexagon",
+        explanation: "Hexa means six, so hexagon has 6 sides. Triangle (3), Pentagon (5), Octagon (8).",
+        category: "Geometry"
+      },
+      {
+        question: "Which of these is the largest?",
+        options: ["1/2", "0.75", "3/4", "0.6"],
+        answer: "0.75",
+        explanation: "1/2 = 0.5, 3/4 = 0.75, 0.6 = 0.6. So 0.75 is the largest.",
+        category: "Number Comparison"
+      },
+      {
+        question: "What is 15% of 200?",
+        options: ["25", "30", "35", "40"],
+        answer: "30",
+        explanation: "15% of 200 = 0.15 × 200 = 30.",
+        category: "Percentage Calculation"
+      }
+    ];
+
+    // Initialize
+    totalQuestionsDisplay.textContent = questions.length;
+
+    // Event listeners
+    startBtn.addEventListener("click", startTest);
+    restartBtn.addEventListener("click", restartTest);
+    reviewBtn.addEventListener("click", reviewAnswers);
+
+    function startTest() {
+      testContainer.classList.remove("hidden");
+      startBtn.classList.add("hidden");
+      startTime = new Date();
+      questionStartTime = new Date();
+      startTimers();
+      loadQuestion();
+    }
+
+    function restartTest() {
+      currentQuestion = 0;
+      score = 0;
+      selectedAnswer = null;
+      userAnswers = [];
+      questionTimes = [];
+      testCompleted = false;
+      
+      // Reset displays
+      resultBox.classList.add("hidden");
+      feedbackDisplay.textContent = "";
+      feedbackDisplay.className = "feedback";
+      currentScoreDisplay.textContent = "0";
+      detailedResults.innerHTML = "";
+      
+      // Show test elements
+      questionBox.classList.remove("hidden");
+      optionsBox.classList.remove("hidden");
+      submitBtn.classList.remove("hidden");
+      progressText.classList.remove("hidden");
+      
+      startTime = new Date();
+      questionStartTime = new Date();
+      startTimers();
+      loadQuestion();
+    }
+
+    function startTimers() {
+      // Clear existing timers
+      clearInterval(testTimerInterval);
+      clearInterval(questionTimerInterval);
+      
+      // Start test timer
+      testTimerInterval = setInterval(updateTestTimer, 1000);
+      
+      // Start question timer
+      questionTimerInterval = setInterval(updateQuestionTimer, 1000);
+    }
+
+    function updateTestTimer() {
+      const now = new Date();
+      const elapsed = Math.floor((now - startTime) / 1000);
+      const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
+      const seconds = (elapsed % 60).toString().padStart(2, '0');
+      timeDisplay.textContent = `${minutes}:${seconds}`;
+    }
+
+    function updateQuestionTimer() {
+      const now = new Date();
+      const elapsed = Math.floor((now - questionStartTime) / 1000);
+      const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
+      const seconds = (elapsed % 60).toString().padStart(2, '0');
+      questionTimerDisplay.textContent = `${minutes}:${seconds}`;
+    }
+
+    function loadQuestion() {
+      if (testCompleted) return;
+      
+      const current = questions[currentQuestion];
+      questionBox.textContent = current.question;
+      optionsBox.innerHTML = "";
+      selectedAnswer = null;
+      questionStartTime = new Date();
+      
+      // Update progress
+      progressBar.style.width = `${(currentQuestion / questions.length) * 100}%`;
+      currentQuestionDisplay.textContent = currentQuestion + 1;
+      
+      // Create option buttons
+      current.options.forEach((opt, index) => {
+        const option = document.createElement("div");
+        option.textContent = opt;
+        option.classList.add("option");
+        
+        // If user already answered this question, show their selection
+        if (userAnswers[currentQuestion] !== undefined && userAnswers[currentQuestion].answerIndex === index) {
+          option.classList.add("selected");
+        }
+        
+        option.addEventListener("click", () => selectAnswer(option, index));
+        optionsBox.appendChild(option);
+      });
+      
+      submitBtn.disabled = userAnswers[currentQuestion] !== undefined;
+    }
+
+    function selectAnswer(option, index) {
+      // Deselect all options
+      document.querySelectorAll('.option').forEach(opt => {
+        opt.classList.remove("selected");
+      });
+      
+      // Select clicked option
+      option.classList.add("selected");
+      selectedAnswer = index;
+      submitBtn.disabled = false;
+    }
+
+    submitBtn.addEventListener("click", checkAnswer);
+
+    function checkAnswer() {
+      if (selectedAnswer === null) {
+        alert("Please select an answer before submitting.");
+        return;
+      }
+      
+      const current = questions[currentQuestion];
+      const isCorrect = current.options[selectedAnswer] === current.answer;
+      const now = new Date();
+      const timeSpent = Math.floor((now - questionStartTime) / 1000);
+      
+      // Store user answer and time spent
+      userAnswers[currentQuestion] = {
+        answerIndex: selectedAnswer,
+        isCorrect: isCorrect,
+        timeSpent: timeSpent
+      };
+      
+      questionTimes.push(timeSpent);
+      
+      // Update score if correct
+      if (isCorrect) {
+        score++;
+        currentScoreDisplay.textContent = score;
+      }
+      
+      // Show feedback
+      showFeedback(current, isCorrect);
+      
+      // Highlight correct and wrong answers
+      highlightAnswers(current);
+      
+      submitBtn.disabled = true;
+      
+      // Move to next question or show results
+      setTimeout(() => {
+        currentQuestion++;
+        
+        if (currentQuestion < questions.length) {
+          loadQuestion();
+          feedbackDisplay.textContent = "";
+          feedbackDisplay.className = "feedback";
+        } else {
+          completeTest();
+        }
+      }, 2000);
+    }
+
+    function showFeedback(current, isCorrect) {
+      if (isCorrect) {
+        feedbackDisplay.textContent = "✓ Correct! " + current.explanation;
+        feedbackDisplay.className = "feedback correct-feedback";
+      } else {
+        feedbackDisplay.textContent = "✗ Incorrect. " + current.explanation;
+        feedbackDisplay.className = "feedback wrong-feedback";
+      }
+    }
+
+    function highlightAnswers(current) {
+      document.querySelectorAll('.option').forEach((option, index) => {
+        if (current.options[index] === current.answer) {
+          option.classList.add("correct");
+        } else if (index === selectedAnswer) {
+          option.classList.add("wrong");
+        }
+        option.style.pointerEvents = "none"; // Disable further clicks
+      });
+    }
+
+    function completeTest() {
+      clearInterval(testTimerInterval);
+      clearInterval(questionTimerInterval);
+      testCompleted = true;
+      
+      const now = new Date();
+      const totalTime = Math.floor((now - startTime) / 1000);
+      const minutes = Math.floor(totalTime / 60);
+      const seconds = totalTime % 60;
+      const percentage = Math.round((score / questions.length) * 100);
+      const avgTime = (questionTimes.reduce((a, b) => a + b, 0) / questionTimes.length).toFixed(1);
+      
+      // Display results
+      finalScoreDisplay.textContent = `${score}/${questions.length}`;
+      percentageDisplay.textContent = `${percentage}%`;
+      timeTakenDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+      
+      // Custom result message
+      let message = "";
+      if (percentage >= 85) {
+        message = "🏆 Excellent! You have exceptional aptitude skills.";
+      } else if (percentage >= 70) {
+        message = "👍 Great job! You have strong aptitude skills.";
+      } else if (percentage >= 50) {
+        message = "👌 Good effort! With practice, you can improve further.";
+      } else {
+        message = "💪 Keep practicing! Aptitude skills develop over time.";
+      }
+      
+      resultMessage.innerHTML = `
+        <p>${message}</p>
+        <p>Average time per question: ${avgTime} seconds</p>
+      `;
+      
+      // Show result box
+      resultBox.classList.remove("hidden");
+      questionBox.classList.add("hidden");
+      optionsBox.classList.add("hidden");
+      submitBtn.classList.add("hidden");
+      progressText.classList.add("hidden");
+      
+      // Create confetti for good scores
+      if (percentage >= 70) {
+        createConfetti();
+      }
+    }
+
+    function reviewAnswers() {
+      detailedResults.innerHTML = "<h3>Detailed Results:</h3>";
+      
+      questions.forEach((q, index) => {
+        const userAnswer = userAnswers[index];
+        const isCorrect = userAnswer.isCorrect;
+        const timeSpent = userAnswer.timeSpent;
+        
+        const resultItem = document.createElement("div");
+        resultItem.className = "feedback " + (isCorrect ? "correct-feedback" : "wrong-feedback");
+        resultItem.innerHTML = `
+          <p><strong>Question ${index + 1}:</strong> ${q.question}</p>
+          <p><strong>Your answer:</strong> ${q.options[userAnswer.answerIndex]} (${timeSpent}s)</p>
+          <p><strong>Correct answer:</strong> ${q.answer}</p>
+          <p><strong>Explanation:</strong> ${q.explanation}</p>
+          <p><strong>Category:</strong> ${q.category}</p>
+        `;
+        
+        detailedResults.appendChild(resultItem);
+      });
+      
+      // Scroll to detailed results
+      detailedResults.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function createConfetti() {
+      const colors = ['#00b894', '#0984e3', '#6c5ce7', '#fdcb6e', '#e17055'];
+      
+      for (let i = 0; i < 100; i++) {
+        const confetti = document.createElement("div");
+        confetti.className = "confetti";
+        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        confetti.style.left = Math.random() * 100 + "%";
+        confetti.style.top = -10 + "px";
+        confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+        
+        document.querySelector(".container").appendChild(confetti);
+        
+        const animationDuration = Math.random() * 3 + 2;
+        
+        confetti.style.animation = `
+          drop ${animationDuration}s ease-in forwards,
+          spin ${animationDuration}s linear infinite
+        `;
+        
+        // Remove confetti after animation
+        setTimeout(() => {
+          confetti.remove();
+        }, animationDuration * 1000);
+      }
+      
+      // Add keyframes dynamically
+      const style = document.createElement("style");
+      style.innerHTML = `
+        @keyframes drop {
+          to {
+            top: 100%;
+            opacity: 0;
+          }
+        }
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+  </script>
+</body>
+</html>

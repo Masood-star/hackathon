@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Driven Simulation</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #111;
+            color: #eee;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            color: #4CAF50;
+            text-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+        }
+        
+        .subtitle {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #aaa;
+        }
+        
+        .simulation-container {
+            position: relative;
+            margin: 0 auto 30px;
+            border: 2px solid #4CAF50;
+            border-radius: 5px;
+            box-shadow: 0 0 20px rgba(76, 175, 80, 0.3);
+            overflow: hidden;
+        }
+
+        #simulation-canvas {
+            display: block;
+            background-color: #000;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            background-color: #333;
+            color: #4CAF50;
+            border: 1px solid #4CAF50;
+            border-radius: 4px;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            transition: all 0.3s;
+        }
+        
+        button:hover {
+            background-color: #4CAF50;
+            color: #000;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+        
+        .stat-box {
+            background-color: #222;
+            border: 1px solid #4CAF50;
+            border-radius: 4px;
+            padding: 10px;
+            min-width: 150px;
+            margin-bottom: 10px;
+        }
+        
+        .stat-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #4CAF50;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            background: #333;
+            -webkit-appearance: none;
+            height: 8px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #4CAF50;
+            cursor: pointer;
+        }
+        
+        .settings-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        
+        .setting-box {
+            background-color: #222;
+            border: 1px solid #4CAF50;
+            border-radius: 4px;
+            padding: 15px;
+            width: 250px;
+        }
+        
+        .setting-title {
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #4CAF50;
+            text-align: center;
+        }
+        
+        .green-glow {
+            text-shadow: 0 0 5px #4CAF50;
+        }
+        
+        .matrix-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.05;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #666;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="matrix-bg" class="matrix-bg"></canvas>
+    
+    <div class="container">
+        <h1>AI-Driven <span class="green-glow">Ecosystem Simulation</span></h1>
+        <p class="subtitle">Watch artificial life evolve following simple rules</p>
+        
+        <div class="simulation-container">
+            <canvas id="simulation-canvas"></canvas>
+        </div>
+        
+        <div class="controls">
+            <button id="start-stop">Pause</button>
+            <button id="reset">Reset</button>
+            <button id="add-entities">Add Entities</button>
+            <button id="add-food">Add Food</button>
+            <button id="toggle-traces">Toggle Traces</button>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-box">
+                <div class="stat-title">Population</div>
+                <div id="population-count">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-title">Generations</div>
+                <div id="generation-count">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-title">Average Speed</div>
+                <div id="avg-speed">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-title">Average Size</div>
+                <div id="avg-size">0</div>
+            </div>
+        </div>
+        
+        <div class="settings-container">
+            <div class="setting-box">
+                <div class="setting-title">Simulation Speed</div>
+                <input type="range" id="simulation-speed" min="1" max="10" value="5">
+                <div id="speed-value">5x</div>
+            </div>
+            <div class="setting-box">
+                <div class="setting-title">Food Growth Rate</div>
+                <input type="range" id="food-rate" min="1" max="20" value="5">
+                <div id="food-rate-value">5</div>
+            </div>
+            <div class="setting-box">
+                <div class="setting-title">Mutation Rate</div>
+                <input type="range" id="mutation-rate" min="1" max="20" value="5">
+                <div id="mutation-value">5%</div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            Created with HTML, CSS, and JavaScript • Emergent Behavior Simulation
+        </div>
+    </div>
+
+    <script>
+        // Matrix background effect
+        const matrixCanvas = document.getElementById('matrix-bg');
+        const matrixCtx = matrixCanvas.getContext('2d');
+        matrixCanvas.width = window.innerWidth;
+        matrixCanvas.height = window.innerHeight;
+
+        const matrixChars = "01";
+        const fontSize = 12;
+        const columns = matrixCanvas.width / fontSize;
+        const drops = [];
+
+        for (let i = 0; i < columns; i++) {
+            drops[i] = Math.floor(Math.random() * matrixCanvas.height / fontSize);
+        }
+
+        function drawMatrix() {
+            matrixCtx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            matrixCtx.fillRect(0, 0, matrixCanvas.width, matrixCanvas.height);
+            matrixCtx.fillStyle = '#0F0';
+            matrixCtx.font = fontSize + 'px monospace';
+
+            for (let i = 0; i < drops.length; i++) {
+                const text = matrixChars.charAt(Math.floor(Math.random() * matrixChars.length));
+                matrixCtx.fillText(text, i * fontSize, drops[i] * fontSize);
+                
+                if (drops[i] * fontSize > matrixCanvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                drops[i]++;
+            }
+        }
+
+        setInterval(drawMatrix, 80);
+
+        // AI Simulation Logic
+        const canvas = document.getElementById('simulation-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Set canvas size based on parent container
+        function resizeCanvas() {
+            const container = document.querySelector('.simulation-container');
+            canvas.width = container.clientWidth;
+            canvas.height = window.innerHeight * 0.5;
+        }
+        
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Simulation parameters
+        let isRunning = true;
+        let showTraces = false;
+        let simulationSpeed = 5;
+        let foodGrowthRate = 5;
+        let mutationRate = 5;
+        let generation = 1;
+        
+        // Entities and food
+        const entities = [];
+        const foods = [];
+        
+        class Entity {
+            constructor(x, y) {
+                this.x = x || Math.random() * canvas.width;
+                this.y = y || Math.random() * canvas.height;
+                this.size = 5 + Math.random() * 5;
+                this.speed = 0.5 + Math.random() * 2;
+                this.direction = Math.random() * Math.PI * 2;
+                this.energy = 100;
+                this.lifespan = 0;
+                this.color = {
+                    r: 50 + Math.floor(Math.random() * 150),
+                    g: 150 + Math.floor(Math.random() * 100),
+                    b: 50 + Math.floor(Math.random() * 100)
+                };
+                this.sensorRange = 50 + Math.random() * 50;
+                this.memory = [];
+                this.reproductionEnergy = 150 + Math.random() * 50;
+            }
+            
+            update() {
+                this.lifespan++;
+                
+                // Lose energy over time (faster if bigger or faster)
+                this.energy -= 0.1 * (this.size / 5) * (this.speed / 1);
+                
+                // Die if no energy
+                if (this.energy <= 0) {
+                    return false;
+                }
+                
+                // Look for nearby food
+                let nearestFood = null;
+                let nearestDist = this.sensorRange;
+                
+                for (const food of foods) {
+                    const dist = Math.hypot(this.x - food.x, this.y - food.y);
+                    if (dist < nearestDist) {
+                        nearestDist = dist;
+                        nearestFood = food;
+                    }
+                }
+                
+                // If found food, move towards it
+                if (nearestFood) {
+                    const angle = Math.atan2(nearestFood.y - this.y, nearestFood.x - this.x);
+                    this.direction = angle;
+                    
+                    // Remember this location
+                    if (this.memory.length > 5) {
+                        this.memory.shift();
+                    }
+                    this.memory.push({x: nearestFood.x, y: nearestFood.y});
+                } else if (this.memory.length > 0 && Math.random() < 0.02) {
+                    // Sometimes check memory for food spots
+                    const memorySpot = this.memory[Math.floor(Math.random() * this.memory.length)];
+                    this.direction = Math.atan2(memorySpot.y - this.y, memorySpot.x - this.x);
+                } else if (Math.random() < 0.05) {
+                    // Randomly change direction occasionally
+                    this.direction += (Math.random() - 0.5) * 1;
+                }
+                
+                // Move
+                this.x += Math.cos(this.direction) * this.speed * (simulationSpeed / 5);
+                this.y += Math.sin(this.direction) * this.speed * (simulationSpeed / 5);
+                
+                // Wrap around edges
+                if (this.x < 0) this.x = canvas.width;
+                if (this.x > canvas.width) this.x = 0;
+                if (this.y < 0) this.y = canvas.height;
+                if (this.y > canvas.height) this.y = 0;
+                
+                // Check for food collision
+                for (let i = 0; i < foods.length; i++) {
+                    const food = foods[i];
+                    const dist = Math.hypot(this.x - food.x, this.y - food.y);
+                    
+                    if (dist < this.size + food.size) {
+                        // Eat food
+                        this.energy += food.energy;
+                        foods.splice(i, 1);
+                        i--;
+                        
+                        // Reproduction check
+                        if (this.energy > this.reproductionEnergy && entities.length < 100) {
+                            this.reproduce();
+                        }
+                    }
+                }
+                
+                return true;
+            }
+            
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = `rgb(${this.color.r}, ${this.color.g}, ${this.color.b})`;
+                ctx.fill();
+                
+                // Draw direction indicator
+                const dirX = this.x + Math.cos(this.direction) * (this.size + 5);
+                const dirY = this.y + Math.sin(this.direction) * (this.size + 5);
+                ctx.beginPath();
+                ctx.moveTo(this.x, this.y);
+                ctx.lineTo(dirX, dirY);
+                ctx.strokeStyle = `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, 0.7)`;
+                ctx.stroke();
+                
+                // Draw sensor range if entity is large enough
+                if (this.size > 8) {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.sensorRange, 0, Math.PI * 2);
+                    ctx.strokeStyle = `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, 0.1)`;
+                    ctx.stroke();
+                }
+            }
+            
+            reproduce() {
+                const childEnergy = this.energy * 0.3;
+                this.energy -= childEnergy;
+                
+                const child = new Entity(this.x, this.y);
+                
+                // Inherit properties with mutation
+                child.size = this.size * (1 + (Math.random() - 0.5) * 0.2 * (mutationRate / 10));
+                child.speed = this.speed * (1 + (Math.random() - 0.5) * 0.2 * (mutationRate / 10));
+                child.sensorRange = this.sensorRange * (1 + (Math.random() - 0.5) * 0.2 * (mutationRate / 10));
+                child.reproductionEnergy = this.reproductionEnergy * (1 + (Math.random() - 0.5) * 0.1 * (mutationRate / 10));
+                
+                // Inherit color with slight mutation
+                child.color = {
+                    r: Math.max(0, Math.min(255, this.color.r + (Math.random() - 0.5) * 30 * (mutationRate / 10))),
+                    g: Math.max(0, Math.min(255, this.color.g + (Math.random() - 0.5) * 30 * (mutationRate / 10))),
+                    b: Math.max(0, Math.min(255, this.color.b + (Math.random() - 0.5) * 30 * (mutationRate / 10)))
+                };
+                
+                child.energy = childEnergy;
+                child.direction = this.direction + Math.PI + (Math.random() - 0.5);
+                
+                entities.push(child);
+                generation++;
+                updateStats();
+            }
+        }
+        
+        class Food {
+            constructor(x, y) {
+                this.x = x || Math.random() * canvas.width;
+                this.y = y || Math.random() * canvas.height;
+                this.size = 2 + Math.random() * 3;
+                this.energy = 20 + Math.random() * 20;
+                this.color = {
+                    r: 30 + Math.floor(Math.random() * 30),
+                    g: 200 + Math.floor(Math.random() * 55),
+                    b: 30 + Math.floor(Math.random() * 30)
+                };
+            }
+            
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = `rgb(${this.color.r}, ${this.color.g}, ${this.color.b})`;
+                ctx.fill();
+            }
+        }
+        
+        // Initialize simulation
+        function initSimulation() {
+            entities.length = 0;
+            foods.length = 0;
+            generation = 1;
+            
+            // Add initial entities
+            for (let i = 0; i < 20; i++) {
+                entities.push(new Entity());
+            }
+            
+            // Add initial food
+            for (let i = 0; i < 50; i++) {
+                foods.push(new Food());
+            }
+            
+            updateStats();
+        }
+        
+        // Animation loop
+        function animate() {
+            if (!showTraces) {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            } else {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+            
+            if (isRunning) {
+                // Update entities
+                for (let i = 0; i < entities.length; i++) {
+                    const alive = entities[i].update();
+                    if (!alive) {
+                        entities.splice(i, 1);
+                        i--;
+                    }
+                }
+                
+                // Add new food based on rate
+                if (Math.random() < 0.1 * (foodGrowthRate / 5) && foods.length < 200) {
+                    foods.push(new Food());
+                }
+                
+                // Update stats occasionally
+                if (Math.random() < 0.05) {
+                    updateStats();
+                }
+            }
+            
+            // Draw foods
+            for (const food of foods) {
+                food.draw();
+            }
+            
+            // Draw entities
+            for (const entity of entities) {
+                entity.draw();
+            }
+            
+            requestAnimationFrame(animate);
+        }
+        
+        // Update stats display
+        function updateStats() {
+            document.getElementById('population-count').textContent = entities.length;
+            document.getElementById('generation-count').textContent = generation;
+            
+            let avgSpeed = 0;
+            let avgSize = 0;
+            
+            if (entities.length > 0) {
+                for (const entity of entities) {
+                    avgSpeed += entity.speed;
+                    avgSize += entity.size;
+                }
+                
+                avgSpeed /= entities.length;
+                avgSize /= entities.length;
+            }
+            
+            document.getElementById('avg-speed').textContent = avgSpeed.toFixed(2);
+            document.getElementById('avg-size').textContent = avgSize.toFixed(2);
+        }
+        
+        // UI controls
+        document.getElementById('start-stop').addEventListener('click', function() {
+            isRunning = !isRunning;
+            this.textContent = isRunning ? 'Pause' : 'Resume';
+        });
+        
+        document.getElementById('reset').addEventListener('click', function() {
+            initSimulation();
+        });
+        
+        document.getElementById('add-entities').addEventListener('click', function() {
+            for (let i = 0; i < 5; i++) {
+                entities.push(new Entity());
+            }
+            updateStats();
+        });
+        
+        document.getElementById('add-food').addEventListener('click', function() {
+            for (let i = 0; i < 10; i++) {
+                foods.push(new Food());
+            }
+        });
+        
+        document.getElementById('toggle-traces').addEventListener('click', function() {
+            showTraces = !showTraces;
+            this.textContent = showTraces ? 'Hide Traces' : 'Show Traces';
+        });
+        
+        document.getElementById('simulation-speed').addEventListener('input', function() {
+            simulationSpeed = parseInt(this.value);
+            document.getElementById('speed-value').textContent = simulationSpeed + 'x';
+        });
+        
+        document.getElementById('food-rate').addEventListener('input', function() {
+            foodGrowthRate = parseInt(this.value);
+            document.getElementById('food-rate-value').textContent = foodGrowthRate;
+        });
+        
+        document.getElementById('mutation-rate').addEventListener('input', function() {
+            mutationRate = parseInt(this.value);
+            document.getElementById('mutation-value').textContent = mutationRate + '%';
+        });
+        
+        initSimulation();
+        animate();
+    </script>
+</body>
+</html>
