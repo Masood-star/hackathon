@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive YouTube Gallery</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f9f9f9;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .search-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        
+        .search-container input {
+            width: 60%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 30px 0 0 30px;
+            font-size: 16px;
+            outline: none;
+        }
+        
+        .search-container button {
+            background-color: #ff0000;
+            color: white;
+            border: none;
+            border-radius: 0 30px 30px 0;
+            padding: 12px 20px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        
+        .search-container button:hover {
+            background-color: #cc0000;
+        }
+        
+        .filters {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .filter-btn {
+            background-color: #f0f0f0;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .filter-btn:hover, .filter-btn.active {
+            background-color: #ff0000;
+            color: white;
+        }
+        
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+        }
+        
+        .video-card {
+            background-color: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+        
+        .video-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        .thumbnail {
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+            height: 180px;
+        }
+        
+        .thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s;
+        }
+        
+        .video-card:hover .thumbnail img {
+            transform: scale(1.05);
+        }
+        
+        .play-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0;
+            width: 60px;
+            height: 60px;
+            background-color: rgba(255, 0, 0, 0.8);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.3s;
+        }
+        
+        .play-icon::after {
+            content: '';
+            width: 0;
+            height: 0;
+            border-top: 12px solid transparent;
+            border-bottom: 12px solid transparent;
+            border-left: 18px solid white;
+            margin-left: 4px;
+        }
+        
+        .video-card:hover .play-icon {
+            opacity: 1;
+        }
+        
+        .video-info {
+            padding: 15px;
+        }
+        
+        .video-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .channel-name {
+            font-size: 14px;
+            color: #606060;
+            margin-bottom: 5px;
+        }
+        
+        .video-stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: #606060;
+        }
+        
+        .tooltip {
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            bottom: 120%;
+            left: 50%;
+            transform: translateX(-50%);
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+            z-index: 10;
+        }
+        
+        .tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 5px;
+            border-style: solid;
+            border-color: rgba(0, 0, 0, 0.8) transparent transparent transparent;
+        }
+        
+        footer {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 20px 0;
+            margin-top: 40px;
+        }
+        
+        /* Animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .video-card {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+        
+        .video-card:nth-child(2) { animation-delay: 0.1s; }
+        .video-card:nth-child(3) { animation-delay: 0.2s; }
+        .video-card:nth-child(4) { animation-delay: 0.3s; }
+        .video-card:nth-child(5) { animation-delay: 0.4s; }
+        .video-card:nth-child(6) { animation-delay: 0.5s; }
+        .video-card:nth-child(7) { animation-delay: 0.6s; }
+        .video-card:nth-child(8) { animation-delay: 0.7s; }
+        .video-card:nth-child(9) { animation-delay: 0.8s; }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .search-container input {
+                width: 70%;
+            }
+            
+            .video-grid {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            }
+        }
+        
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .search-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .search-container input {
+                width: 100%;
+                border-radius: 30px;
+                margin-bottom: 10px;
+            }
+            
+            .search-container button {
+                width: 80%;
+                border-radius: 30px;
+            }
+            
+            .video-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>YouTube Gallery</h1>
+            <p>Discover and watch amazing videos</p>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="search-container">
+            <input type="text" placeholder="Search videos...">
+            <button id="search-btn">Search</button>
+        </div>
+        
+        <div class="filters">
+            <button class="filter-btn active" data-category="all">All</button>
+            <button class="filter-btn" data-category="music">Music</button>
+            <button class="filter-btn" data-category="gaming">Gaming</button>
+            <button class="filter-btn" data-category="education">Education</button>
+            <button class="filter-btn" data-category="tech">Technology</button>
+            <button class="filter-btn" data-category="travel">Travel</button>
+            <button class="filter-btn" data-category="sports">Sports</button>
+        </div>
+        
+        <div class="video-grid" id="video-container">
+            <!-- Video cards will be generated here -->
+        </div>
+    </div>
+    
+    <footer>
+        <p>&copy; 2025 YouTube Gallery | Created with ❤️</p>
+    </footer>
+
+    <script>
+        // Sample video data - using real YouTube video links
+        const videosData = [
+            {
+                id: "HcOc7P5BMi4",
+                title: "HTML Tutorial for Beginners | Complete HTML with Notes & Code",
+                channelName: "Web Dev Tutorials",
+                views: "1.2M views",
+                uploadDate: "1 year ago",
+                thumbnail: "/api/placeholder/300/180",
+                category: "education"
+            },
+            {
+                id: "VlPiVmYuoqw", 
+                title: "Learn Responsive Web Design Tutorial",
+                channelName: "Code Academy",
+                views: "3.4M views",
+                uploadDate: "2 years ago",
+                thumbnail: "/api/placeholder/300/180",
+                category: "education"
+            },
+            {
+                id: "gDN7cJ3Rt80",
+                title: "Ultimate JavaScript Course for Beginners",
+                channelName: "Dev Masters",
+                views: "2.1M views",
+                uploadDate: "8 months ago",
+                thumbnail: "/api/placeholder/300/180",
+                category: "education"
+            },
+            {
+                id: "dqIYMfRAeiU",
+                title: "Full Stack Web Development Project Walkthrough",
+                channelName: "Code With Alex",
+                views: "875K views",
+                uploadDate: "5 months ago",
+                thumbnail: "/api/placeholder/300/180",
+                category: "tech"
+            },
+            {
+                id: "dQw4w9WgXcQ",
+                title: "Rick Astley - Never Gonna Give You Up (Official Music Video)",
+                channelName: "Rick Astley",
+                views: "1.2B views",
+                uploadDate: "3 years ago",
+                thumbnail: "/api/placeholder/300/180",
+                category: "music"
+            },
+            {
+                id: "7X3fOXKR0_c",
+                title: "Top 10 Places to Visit in 2025 - Travel Guide",
+                channelName: "Travel Pulse",
+                views: "3.4M views",
+                uploadDate: "5 months ago",
+                thumbnail: "/api/placeholder/300/180",
+                category: "travel"
+            },
+            {
+                id: "mzJ4vCjSt0c",
+                title: "PlayStation 6 Rumors and Leaks - What We Know So Far",
+                channelName: "GameSpot",
+                views: "2.1M views",
+                uploadDate: "1 month ago",
+                thumbnail: "/api/placeholder/300/180",
+                category: "gaming"
+            },
+            {
+                id: "z9bZufPHFLU",
+                title: "Artificial Intelligence Explained: The Future is Here",
+                channelName: "Tech Insights",
+                views: "7.2M views",
+                uploadDate: "8 months ago",
+                thumbnail: "/api/placeholder/300/180",
+                category: "tech"
+            },
+            {
+                id: "8Qn_spdM5Zg",
+                title: "NBA Top 10 Plays of the Week",
+                channelName: "Sports Central",
+                views: "4.5M views",
+                uploadDate: "2 weeks ago",
+                thumbnail: "/api/placeholder/300/180",
+                category: "sports"
+            }
+        ];
+
+        // Function to create video cards
+        function createVideoCards(videos) {
+            const videoContainer = document.getElementById('video-container');
+            videoContainer.innerHTML = '';
+            
+            videos.forEach(video => {
+                const videoCard = document.createElement('div');
+                videoCard.className = 'video-card';
+                videoCard.dataset.category = video.category;
+                
+                videoCard.innerHTML = `
+                    <div class="thumbnail">
+                        <img src="${video.thumbnail}" alt="${video.title}">
+                        <div class="play-icon"></div>
+                    </div>
+                    <div class="video-info">
+                        <h3 class="video-title">${video.title}</h3>
+                        <p class="channel-name">${video.channelName}</p>
+                        <div class="video-stats">
+                            <span>${video.views}</span>
+                            <span>${video.uploadDate}</span>
+                        </div>
+                    </div>
+                `;
+                
+                videoCard.addEventListener('click', () => {
+                    // Using the correct YouTube URL format with video ID
+                    window.open(`https://www.youtube.com/watch?v=${video.id}`, '_blank');
+                });
+                
+                videoContainer.appendChild(videoCard);
+            });
+        }
+
+        // Initialize page with all videos
+        createVideoCards(videosData);
+
+        // Filter functionality
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        filterButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Update active state
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                
+                const category = button.dataset.category;
+                
+                // Filter videos
+                if (category === 'all') {
+                    createVideoCards(videosData);
+                } else {
+                    const filteredVideos = videosData.filter(video => video.category === category);
+                    createVideoCards(filteredVideos);
+                }
+            });
+        });
+
+        // Search functionality
+        const searchButton = document.getElementById('search-btn');
+        const searchInput = document.querySelector('.search-container input');
+        
+        searchButton.addEventListener('click', performSearch);
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                performSearch();
+            }
+        });
+        
+        function performSearch() {
+            const searchTerm = searchInput.value.toLowerCase();
+            if (searchTerm.trim() === '') {
+                createVideoCards(videosData);
+                return;
+            }
+            
+            const searchResults = videosData.filter(video => 
+                video.title.toLowerCase().includes(searchTerm) || 
+                video.channelName.toLowerCase().includes(searchTerm)
+            );
+            
+            createVideoCards(searchResults);
+        }
+
+        // Add some interactivity and animations
+        document.addEventListener('DOMContentLoaded', function() {
+            // Subtle animations for elements on load
+            const animateElements = [
+                document.querySelector('header'),
+                document.querySelector('.search-container'),
+                document.querySelector('.filters')
+            ];
+            
+            animateElements.forEach((element, index) => {
+                setTimeout(() => {
+                    element.style.opacity = '0';
+                    element.style.transform = 'translateY(20px)';
+                    element.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                    
+                    setTimeout(() => {
+                        element.style.opacity = '1';
+                        element.style.transform = 'translateY(0)';
+                    }, 100);
+                }, index * 150);
+            });
+        });
+    </script>
+</body>
+</html>
